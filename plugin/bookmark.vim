@@ -174,6 +174,7 @@ function! BookmarkShowAll()
   if s:is_quickfix_win()
     q
   else
+    call s:auto_save()
     call s:refresh_line_numbers()
     if exists(':Unite')
       exec ":Unite vim_bookmarks"
@@ -416,12 +417,14 @@ function! s:bookmark_add(file, line_nr, ...)
   let annotation = (a:0 ==# 1) ? a:1 : ""
   let sign_idx = bm_sign#add(a:file, a:line_nr, annotation !=# "")
   call bm#add_bookmark(a:file, sign_idx, a:line_nr, getline(a:line_nr), annotation)
+  call s:auto_save()
 endfunction
 
 function! s:bookmark_remove(file, line_nr)
   let bookmark = bm#get_bookmark_by_line(a:file, a:line_nr)
   call bm_sign#del(a:file, bookmark['sign_idx'])
   call bm#del_bookmark_at_line(a:file, a:line_nr)
+  " call s:auto_save()
 endfunction
 
 function! s:jump_to_bookmark(type)
@@ -526,7 +529,7 @@ function! s:set_up_auto_save(file)
     augroup bm_auto_save
       autocmd!
       autocmd BufWinEnter * call s:add_missing_signs(expand('<afile>:p'))
-      autocmd BufLeave,VimLeave * call s:auto_save()
+      autocmd VimLeave * call s:auto_save()
     augroup END
   endif
 endfunction
